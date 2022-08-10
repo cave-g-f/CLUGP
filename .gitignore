@@ -1,0 +1,5 @@
+.idea/
+TCMSP.iml
+target/
+src/main/resources/*.txt
+output/
