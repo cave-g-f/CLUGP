@@ -1,5 +1,5 @@
 .idea/
 TCMSP.iml
 target/
-src/main/resources/*.txt
+src/main/resources/
 output/

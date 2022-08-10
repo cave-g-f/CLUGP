@@ -1,5 +1,8 @@
 package ustc.nodb.main;
 
+import groovyjarjarcommonscli.BasicParser;
+import groovyjarjarcommonscli.CommandLineParser;
+import groovyjarjarcommonscli.Options;
 import ustc.nodb.Graph.Graph;
 import ustc.nodb.Graph.OriginGraph;
 import ustc.nodb.cluster.StreamCluster;
@@ -10,7 +13,9 @@ import ustc.nodb.thread.ClusterGameTask;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class CluSPMain {
@@ -21,13 +26,26 @@ public class CluSPMain {
 
     public static void main(String[] args) throws IOException {
 
+//        GlobalConfig.vCount = Integer.parseInt(args[0]);
+//        GlobalConfig.eCount = Integer.parseInt(args[1]);
+//        GlobalConfig.inputGraphPath = args[2];
+//        GlobalConfig.threads = Integer.parseInt(args[3]);
+//        GlobalConfig.partitionNum = Integer.parseInt(args[4]);
+//        GlobalConfig.batchSize = Integer.parseInt(args[5]);
+//        GlobalConfig.outputGraphPath = args[6];
+
+        System.out.println("input graph: " + GlobalConfig.inputGraphPath);
+
+        System.out.println("---------------start-------------");
+
+        long beforeUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
         long startTime = System.currentTimeMillis();
-        graph.readGraphFromFile();
 
         StreamCluster streamCluster = new StreamCluster(graph);
         streamCluster.startSteamCluster();
 
-        ArrayList<Integer> clusterList = streamCluster.getClusterList();
+        List<Integer> clusterList = streamCluster.getClusterList();
 
         // parallel game theory
         ExecutorService taskPool = Executors.newFixedThreadPool(GlobalConfig.getThreads());
@@ -72,20 +90,22 @@ public class CluSPMain {
         double rf = cluSP.getReplicateFactor();
         double lb = cluSP.getLoadBalance();
 
-        cluSP.output();
-
         // free unused mem
         graph.clear();
         cluSP.clear();
         System.gc();
 
-        long memoryUsed = Runtime.getRuntime().totalMemory() >> 20;
+        long afterUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long memoryUsed = (afterUsedMem - beforeUsedMem) >> 20;
 
+        System.out.println("partition num:" + GlobalConfig.getPartitionNum());
         System.out.println("partition time: " + (endTime - startTime) + " ms");
         System.out.println("relative balance load:" + lb);
         System.out.println("replicate factor: " + rf);
         System.out.println("memory cost: " + memoryUsed + " MB");
         System.out.println("total game round:" + roundCnt);
         System.out.println("cluster game time: " + (gameEndTime - gameStartTime) + " ms");
+
+        System.out.println("---------------end-------------");
     }
 }
